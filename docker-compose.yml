@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  mysql_db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: '1'
+
+  flask-api:
+    container_name: app-app
+    restart: always
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/usr/src/app
+    depends_on:
+      - mysql_db
+    external_links:
+      - mysql_db:test_mysql
+    environment:
+      MYSQL_HOST: test_mysql
+
+  frontend:
+    container_name: react-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - './frontend:/usr/src/app'
+      - '/usr/src/app/node_modules'
+    ports:
+      - '3000:3000'
+    depends_on:
+      - "flask-api"
+    environment:
+      - NODE_ENV=development
